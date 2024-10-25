@@ -41,8 +41,9 @@ async function processAndUpdateExcelFile(filePath) {
         }
     });
 
-    // Return workbook as a buffer
-    return workbook.xlsx.writeBuffer();
+    // Write the workbook to a buffer and return it
+    const buffer = await workbook.xlsx.writeBuffer();
+    return buffer;
 }
 
 // Fetch product names from API

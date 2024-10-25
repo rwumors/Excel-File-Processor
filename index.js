@@ -37,15 +37,20 @@ app.post('/upload', upload.single('serialFile'), async (req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename=updated_${req.file.originalname}`);
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         
-        // Send the buffer, then delete the file
+        // Send the buffer as the response
         res.send(fileBuffer);
-        fs.unlinkSync(filePath); // Delete the uploaded file after response is sent
+
+        // Clean up the uploaded file after sending the response
+        fs.unlink(filePath, (err) => {
+            if (err) console.error('Error deleting uploaded file:', err);
+        });
 
     } catch (err) {
-        console.error(err);
+        console.error('Error processing the Excel file:', err);
         res.status(500).json({ error: 'An error occurred while processing the file.' });
     }
 });
+
 
 // Endpoint to generate a new Excel file from asset numbers
 app.post('/assetExcel', async (req, res) => {
