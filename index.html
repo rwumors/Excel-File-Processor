@@ -40,81 +40,87 @@
         </div>
     </main>
     <script>
-        const dropZone = document.getElementById('drop_zone');
-        const fileInput = document.getElementById('fileUpload');
-        const fileNameDisplay = document.getElementById('fileName');
-        const form = document.getElementById('fileForm');
-        const downloadSection = document.getElementById('downloadSection');
-        const downloadLink = document.getElementById('downloadLink');
+       const dropZone = document.getElementById('drop_zone');
+const fileInput = document.getElementById('fileUpload');
+const fileNameDisplay = document.getElementById('fileName');
+const form = document.getElementById('fileForm');
+const downloadSection = document.getElementById('downloadSection');
+const downloadLink = document.getElementById('downloadLink');
 
-        // Drag-and-drop functionality
-        dropZone.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            dropZone.classList.add('is_dragover');
-        });
+let originalFileName = 'processed_file.xlsx'; // Default filename
 
-        dropZone.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            dropZone.classList.remove('is_dragover');
-        });
+// Drag-and-drop functionality
+dropZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    dropZone.classList.add('is_dragover');
+});
 
-        dropZone.addEventListener('drop', function(e) {
-            e.preventDefault();
-            dropZone.classList.remove('is_dragover');
-            const files = e.dataTransfer.files;
-            fileInput.files = files; // Populate the input with dropped file(s)
-            updateFileNameDisplay(files[0].name); // Display the file name in the drop area
-        });
+dropZone.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    dropZone.classList.remove('is_dragover');
+});
 
-        dropZone.addEventListener('click', function() {
-            fileInput.click(); // Trigger file input on click
-        });
+dropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dropZone.classList.remove('is_dragover');
+    const files = e.dataTransfer.files;
+    fileInput.files = files; // Populate the input with dropped file(s)
+    originalFileName = files[0].name; // Capture the original filename
+    updateFileNameDisplay(originalFileName); // Display the file name in the drop area
+});
 
-        // Update the displayed file name when a file is manually selected
-        fileInput.addEventListener('change', function() {
-            if (fileInput.files.length > 0) {
-                updateFileNameDisplay(fileInput.files[0].name);
-            }
-        });
+dropZone.addEventListener('click', function() {
+    fileInput.click(); // Trigger file input on click
+});
 
-        // Handle form submission
-        form.addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent the default form submission
-            const formData = new FormData(form); // Create a FormData object for file upload
+// Update the displayed file name when a file is manually selected
+fileInput.addEventListener('change', function() {
+    if (fileInput.files.length > 0) {
+        originalFileName = fileInput.files[0].name; // Capture the original filename
+        updateFileNameDisplay(originalFileName);
+    }
+});
 
-            fetch('/upload', {
-                method: 'POST',
-                body: formData,
-            })
-            .then(response => response.blob()) // Get the response as a blob
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob); // Create a URL for the blob
-                triggerDownload(url); // Trigger the download automatically
-            })
-            .catch(error => {
-                console.error('Error during file upload:', error);
-            });
-        });
+// Handle form submission
+form.addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent the default form submission
+    const formData = new FormData(form); // Create a FormData object for file upload
 
-        // Function to update the file name in the drop zone
-        function updateFileNameDisplay(fileName) {
-            fileNameDisplay.textContent = `Selected file: ${fileName}`;
-            fileNameDisplay.style.display = 'block'; // Show the file name
-        }
+    fetch('/upload', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => response.blob()) // Get the response as a blob
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob); // Create a URL for the blob
+        const processedFileName = `processed_${originalFileName}`; // Append 'processed_' to the original filename
+        triggerDownload(url, processedFileName); // Trigger the download with the original filename
+    })
+    .catch(error => {
+        console.error('Error during file upload:', error);
+    });
+});
 
-        // Function to trigger automatic download
-        function triggerDownload(url) {
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'processed_file.xlsx';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+// Function to update the file name in the drop zone
+function updateFileNameDisplay(fileName) {
+    fileNameDisplay.textContent = `Selected file: ${fileName}`;
+    fileNameDisplay.style.display = 'block'; // Show the file name
+}
 
-            // Show download section in case the automatic download doesn't work
-            downloadSection.style.display = 'block';
-            downloadLink.href = url;
-        }
+// Function to trigger automatic download
+function triggerDownload(url, fileName) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName; // Use the dynamic filename
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Show download section in case the automatic download doesn't work
+    downloadSection.style.display = 'block';
+    downloadLink.href = url;
+    downloadLink.download = fileName; // Set the download link with the dynamic filename
+}
     </script>
 </body>
 </html>
