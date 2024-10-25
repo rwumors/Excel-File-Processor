@@ -1,0 +1,41 @@
+#drop_zone {
+    border: 2px dashed #bbb;
+    border-radius: 5px;
+    padding: 25px;
+    text-align: center;
+    color: #bbb;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+#drop_zone:hover {
+    border-color: #4386fa;
+    color: #4386fa;
+}
+
+.is_dragover {
+    border: 4px dashed #4386fa !important;
+    color: #4386fa !important;
+}
+
+input[type="file"] {
+    display: none; /* Hidden because we'll use drag-and-drop or button upload */
+}
+
+button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #2980b9;
+}

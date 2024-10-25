@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Split Number into Chunks for Excel</title>
+    <link rel="stylesheet" href="./css/app.css">
+    <link rel="stylesheet" href="./css/asset.css">
+</head>
+<body>
+    <header>
+        <h1>Asset Tag Splitter</h1>
+        <nav>
+            <a href="/">Home</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <textarea id="numberInput" placeholder="Enter asset tags without spaces Ex. 815893894016119390124"></textarea><br>
+            <button onclick="splitNumber()">Split Number</button>
+
+            <h3>Result (Copy and Paste into Excel):</h3>
+            <textarea id="result" readonly></textarea>
+            <!-- Download Excel Button -->
+            <button onclick="generateExcel()">Generate Excel</button>
+        </div>
+    </main>
+
+    <script>
+        let splitNumbers = [];
+
+        function splitNumber() {
+            const numberInput = document.getElementById('numberInput').value.trim();
+            const sanitizedInput = numberInput.replace(/\D/g, ''); // Remove non-digits
+            let result = '';
+            splitNumbers = []; // Reset the array
+
+            // Split the numbers into chunks of 7 and store in splitNumbers
+            for (let i = 0; i < sanitizedInput.length; i += 7) {
+                const chunk = sanitizedInput.substring(i, i + 7);
+                result += chunk + '\n';
+                splitNumbers.push(chunk); // Store each chunk in the array
+            }
+
+            document.getElementById('result').value = result.trim();
+        }
+
+        function generateExcel() {
+    fetch('/assetExcel', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',  // Ensure this is set
+        },
+        body: JSON.stringify({ assetNumbers: splitNumbers }),  // Send asset numbers to backend
+    })
+    .then(response => response.blob()) // Handle the Excel file response
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Asset_File.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    })
+    .catch(error => {
+        console.error('Error generating Excel file:', error);
+    });
+}
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Processor</title>
+    <link rel="stylesheet" href="./css/app.css">
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+<body>
+    <header>
+        <h1>Serial number to Model Names Lenovo</h1>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/asset">Asset tag spliter</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <h2>Instructions</h2>
+            <ol>
+                <li>Ensure your file is in <strong>.xlsx</strong> format. Other formats are not supported.</li>
+                <li>Drag and drop your file into the area below, or click to browse and select your file.</li>
+                <li>Wait for the file to be processed. The processed file will automatically download.</li>
+                <li>If the download doesn't start, a download link will be provided for manual download.</li>
+            </ol>
+
+            <form id="fileForm" action="/upload" method="post" enctype="multipart/form-data">
+                <label for="fileUpload">Select a file or drag and drop:</label>
+                <div id="drop_zone">Drag and drop a file here or click to select one</div>
+                <input type="file" id="fileUpload" name="serialFile" />
+                <p id="fileName" style="display:none;">No file selected</p>
+                <button type="submit">Upload Excel File</button>
+            </form>
+
+            <div id="downloadSection" style="display:none;">
+                <p>Processing complete. Your file should start downloading automatically. If not, click <a id="downloadLink" href="#" download>here</a> to download manually.</p>
+            </div>
+        </div>
+    </main>
+    <script>
+        const dropZone = document.getElementById('drop_zone');
+        const fileInput = document.getElementById('fileUpload');
+        const fileNameDisplay = document.getElementById('fileName');
+        const form = document.getElementById('fileForm');
+        const downloadSection = document.getElementById('downloadSection');
+        const downloadLink = document.getElementById('downloadLink');
+
+        // Drag-and-drop functionality
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropZone.classList.add('is_dragover');
+        });
+
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('is_dragover');
+        });
+
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('is_dragover');
+            const files = e.dataTransfer.files;
+            fileInput.files = files; // Populate the input with dropped file(s)
+            updateFileNameDisplay(files[0].name); // Display the file name in the drop area
+        });
+
+        dropZone.addEventListener('click', function() {
+            fileInput.click(); // Trigger file input on click
+        });
+
+        // Update the displayed file name when a file is manually selected
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files.length > 0) {
+                updateFileNameDisplay(fileInput.files[0].name);
+            }
+        });
+
+        // Handle form submission
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the default form submission
+            const formData = new FormData(form); // Create a FormData object for file upload
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.blob()) // Get the response as a blob
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob); // Create a URL for the blob
+                triggerDownload(url); // Trigger the download automatically
+            })
+            .catch(error => {
+                console.error('Error during file upload:', error);
+            });
+        });
+
+        // Function to update the file name in the drop zone
+        function updateFileNameDisplay(fileName) {
+            fileNameDisplay.textContent = `Selected file: ${fileName}`;
+            fileNameDisplay.style.display = 'block'; // Show the file name
+        }
+
+        // Function to trigger automatic download
+        function triggerDownload(url) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'processed_file.xlsx';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Show download section in case the automatic download doesn't work
+            downloadSection.style.display = 'block';
+            downloadLink.href = url;
+        }
+    </script>
+</body>
+</html>
