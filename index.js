@@ -20,7 +20,7 @@ app.get('/asset', (req, res) => {
     res.sendFile(path.join(__dirname, 'asset.html'));
 });
 
-// Endpoint to generate and download the Excel file as buffer
+// Endpoint to generate and download the Excel file as a buffer
 app.post('/upload', upload.single('serialFile'), async (req, res) => {
     const filePath = req.file.path;
     const ext = path.extname(req.file.originalname).toLowerCase();
@@ -33,17 +33,42 @@ app.post('/upload', upload.single('serialFile'), async (req, res) => {
         // Process and get updated workbook as a buffer
         const fileBuffer = await processAndUpdateExcelFile(filePath);
 
-        // Send the file as a downloadable response
-        res.setHeader('Content-Disposition', 'attachment; filename=updated_' + req.file.originalname);
+        // Set headers to send the buffer as an Excel file
+        res.setHeader('Content-Disposition', `attachment; filename=updated_${req.file.originalname}`);
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        
+        // Send the buffer, then delete the file
         res.send(fileBuffer);
-
-        // Clean up the uploaded file
-        fs.unlinkSync(filePath);
+        fs.unlinkSync(filePath); // Delete the uploaded file after response is sent
 
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'An error occurred while processing the file.' });
+    }
+});
+
+// Endpoint to generate a new Excel file from asset numbers
+app.post('/assetExcel', async (req, res) => {
+    const { assetNumbers } = req.body;
+
+    if (!assetNumbers || assetNumbers.length === 0) {
+        return res.status(400).send('No asset numbers provided.');
+    }
+
+    try {
+        // Generate the Excel file using asset numbers
+        const fileBuffer = await generateExcelFile(assetNumbers);
+
+        // Set headers to send the buffer as an Excel file
+        res.setHeader('Content-Disposition', 'attachment; filename=Asset_File.xlsx');
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        
+        // Send the buffer to the client
+        res.send(fileBuffer);
+
+    } catch (err) {
+        console.error('Error generating Excel file:', err);
+        res.status(500).send('Error generating Excel file.');
     }
 });
 
